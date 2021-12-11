@@ -14,3 +14,5 @@
 *.sw[a-p]
 .DS_Store
 
+# dependencies
+/node_modules

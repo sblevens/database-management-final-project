@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Home</title>
+    <link rel="icon" href="favicon.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <style>
+        #content{
+            margin: 0 auto;
+            width: 90%;
+        }
+        table{
+            /* table-layout: fixed; */
+            width: 100%;
+        }
+        .nav {
+            background-color: #212121;
+            overflow: hidden;
+
+        }
+
+        .nav a {
+            float: left;
+            color: #f6f6f6;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 17px;
+        }
+
+        .nav h6 {
+            float: left;
+            color: #f6f6f6;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="nav">
+        <h6>Task Tracker</h6>
+        <a href="#">Home</a>
+    </div>
+    <div id="content">
+        <h1>Uncompleted Tasks</h1>
+        <table class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Due Date</th>
+                    <th>Task Location</th>
+                    <th>Difficulty</th>
+                    <th>Assigned</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% for(const task of data) { %>
+                <tr>
+                    <td>
+                        <%= task.task_name %>
+                    </td>
+                    <td>
+                        <%= task.due_date %>
+                    </td>
+                    <td>
+                        <%= task.task_location %>
+                    </td>
+                    <td>
+                        <%= task.difficulty %>
+                    </td>
+                    <td>
+                        <input type="checkbox" disabled <%= task.assigned ? "checked" : "" %>>
+                    </td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+    
+</body>
+
+</html>
