@@ -33,6 +33,7 @@ CREATE TABLE TaskDetails(
 
 /* TaskHandler table - information about task, completetion, and assignment */
 CREATE TABLE TaskHandler(
+    id INT NOT NULL AUTO_INCREMENT,
     task_name varchar(100),
     time_estimate TIME NOT NULL, /*time estimated to complete task */
     difficulty INT NOT NULL, /*difficulty estimate 1: not difficult -> 10: very difficult */
@@ -41,32 +42,32 @@ CREATE TABLE TaskHandler(
     completed BOOL NOT NULL, /* 0: not completed, 1: completed */
     date_completed DATE NULL,
     assigned BOOl NOT NULL,
-    PRIMARY KEY (task_name,due_date),
+    PRIMARY KEY (id),
     FOREIGN KEY (task_name)
         REFERENCES TaskDetails(task_name)
 );
 
+ALTER TABLE TaskHandler AUTO_INCREMENT=1;
+
 CREATE TABLE AssignedTo(
-    task_name varchar(100),
-    due_date DATE,
-    person_name varchar(100) NULL, /*person task is assigned to */
-    date_assigned DATE NULL, /* date person was assigned to task */
-    PRIMARY KEY (task_name,due_date,person_name),
-    FOREIGN KEY (task_name,due_date) REFERENCES TaskHandler(task_name,due_date),
+    id INT,
+    person_name varchar(100), /*person task is assigned to */
+    date_assigned DATE NOT NULL, /* date person was assigned to task */
+    PRIMARY KEY (id,person_name),
+    FOREIGN KEY (id) REFERENCES TaskHandler(id),
     FOREIGN KEY (person_name) REFERENCES Person(person_name)
 );
 
 
 /* apply ratings to specific compelted tasks */
 CREATE TABLE Rating(
-    task_name varchar(100),
-    due_date DATE,
+    id INT,
     person_name varchar(100),
     stars INT, /* int 0-5 */
     rated_date DATE NOT NULL,
-    PRIMARY KEY (task_name, due_date, person_name, stars),
-    FOREIGN KEY (task_name,due_date)
-        REFERENCES TaskHandler(task_name,due_date),
+    PRIMARY KEY (id, person_name, stars),
+    FOREIGN KEY (id)
+        REFERENCES TaskHandler(id),
     FOREIGN KEY (person_name)
         REFERENCES Person(person_name)
 );
@@ -88,48 +89,48 @@ INSERT INTO TaskDetails VALUES ('Garbage','take garbage out'),
 
 /*adding tasks */
 /*unassigned easy task */
-INSERT INTO TaskHandler VALUES ('Garbage','00:05:00', 3, '2021-12-31', 'Kitchen', 
+INSERT INTO TaskHandler (task_name,time_estimate,difficulty,due_date,task_location,completed,date_completed,assigned) VALUES ('Garbage','00:05:00', 3, '2021-12-31', 'Kitchen', 
  0,NULL,0);
 /* unassigned difficult task */
-INSERT INTO TaskHandler VALUES ('Clean Kitchen','00:30:00', 6, '2021-12-31', 'Kitchen', 
+INSERT INTO TaskHandler (task_name,time_estimate,difficulty,due_date,task_location,completed,date_completed,assigned) VALUES ('Clean Kitchen','00:30:00', 6, '2021-12-31', 'Kitchen', 
  0,NULL,0);
 /*task completed on time */
-INSERT INTO TaskHandler VALUES ('Clean Floors','00:15:00', 4, '2021-11-18', 'House', 
+INSERT INTO TaskHandler (task_name,time_estimate,difficulty,due_date,task_location,completed,date_completed,assigned) VALUES ('Clean Floors','00:15:00', 4, '2021-11-18', 'House', 
  1,'2021-11-15',1);
 /* task not completed on time */
-INSERT INTO TaskHandler VALUES ('Clean Bathroom','00:30:00', 6, '2021-11-18', 'Bathroom', 
+INSERT INTO TaskHandler (task_name,time_estimate,difficulty,due_date,task_location,completed,date_completed,assigned) VALUES ('Clean Bathroom','00:30:00', 6, '2021-11-18', 'Bathroom', 
  0, NULL,1);
 /* task completed on time */
-INSERT INTO TaskHandler VALUES ('Clean Floors','00:15:00', 4, '2021-11-30', 'House', 
+INSERT INTO TaskHandler (task_name,time_estimate,difficulty,due_date,task_location,completed,date_completed,assigned) VALUES ('Clean Floors','00:15:00', 4, '2021-11-30', 'House', 
  1,'2021-11-28',1);
 
 
 /* assign to task */
-INSERT INTO AssignedTo VALUES ('Clean Floors', '2021-11-18', 'Sam', '2021-11-01');
-INSERT INTO AssignedTo VALUES ('Clean Bathroom', '2021-11-18', 'Tori', '2021-11-01');
-INSERT INTO AssignedTo VALUES ('Clean Bathroom', '2021-11-18', 'Sam', '2021-11-01');
-INSERT INTO AssignedTo VALUES ('Clean Floors', '2021-11-30', 'Kim', '2021-11-15');
+INSERT INTO AssignedTo VALUES (3, 'Sam', '2021-11-01');
+INSERT INTO AssignedTo VALUES (4, 'Tori', '2021-11-01');
+INSERT INTO AssignedTo VALUES (4, 'Sam', '2021-11-01');
+INSERT INTO AssignedTo VALUES (5, 'Kim', '2021-11-15');
 
 /*adding ratings */
-INSERT INTO Rating VALUES ('Clean Floors','2021-11-18','Katie',4, '2021-11-20'),
-('Clean Floors', '2021-11-18', 'Kim', 5, '2021-11-21'),
-('Clean Floors', '2021-11-30', 'Sam', 2, '2021-11-29');
+INSERT INTO Rating VALUES (3,'Katie',4, '2021-11-20'),
+(3, 'Kim', 5, '2021-11-21'),
+(5, 'Sam', 2, '2021-11-29');
 
 
 /*added data for HW7 */
 
-INSERT INTO TaskHandler VALUES ('Garbage','00:05:00',3,'2021-11-18','Kitchen',1,'2021-11-15',1),
+INSERT INTO TaskHandler (task_name,time_estimate,difficulty,due_date,task_location,completed,date_completed,assigned) VALUES ('Garbage','00:05:00',3,'2021-11-18','Kitchen',1,'2021-11-15',1),
 ('Clean Bathroom','00:30:00',6, '2021-11-14','Bathroom',1,'2021-11-04',1),
 ('Clean Floors', '00:15:00',4,'2021-12-15','House',1,'2021-12-16',1)
 ;
 
 /* assign to task */
-INSERT INTO AssignedTo VALUES ('Garbage', '2021-11-18', 'Tori','2021-11-01');
-INSERT INTO AssignedTo VALUES ('Clean Bathroom', '2021-11-14', 'Tori', '2021-11-01');
-INSERT INTO AssignedTo VALUES ('Clean Floors', '2021-12-15', 'Tori','2021-12-01');
+INSERT INTO AssignedTo VALUES (6, 'Tori','2021-11-01');
+INSERT INTO AssignedTo VALUES (7, 'Tori', '2021-11-01');
+INSERT INTO AssignedTo VALUES (8, 'Tori','2021-12-01');
 
-INSERT INTO Rating VALUES ('Clean Bathroom', '2021-11-14','Kim',3,'2021-11-15'),
-('Clean Floors','2021-12-15','Kim',4,'2021-12-17')
+INSERT INTO Rating VALUES (7,'Kim',3,'2021-11-15'),
+(8,'Kim',4,'2021-12-17')
 ;
 
 

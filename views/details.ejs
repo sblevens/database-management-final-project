@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Details</title>
+    <link rel="icon" href="favicon.png">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <style>
+        #content{
+            margin: 0 auto;
+            width: 90%;
+            padding-top: 15px;
+        }
+        table{
+            /* table-layout: fixed; */
+            width: 100%;
+        }
+
+        .right{
+            float:right;
+        }
+
+        #header{
+            border: thin black solid;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        #assign{
+            display: initial;
+        }
+
+        #title{
+            margin-bottom: 0px;
+            margin-top: 20px;
+        }
+
+    </style>
+    <script>
+        $(document).ready(function () {
+            if(<%=data[0].assigned %>){
+                $("#assign").attr('hidden',false);
+            } else {
+                // $("#assign").attr('hidden',true);
+                $("#assign").html("No person assigned.");
+            }
+            $("#complete_task").hide();
+
+            if(<%=data[0].completed %>){
+                $("#complete").hide();
+            }
+
+            $("#complete").click(function () {
+                $("#complete_task").show();
+            });
+
+        });
+    </script>
+</head>
+
+<body>
+    <%- include('nav.ejs') %>
+    <div id="content">
+        <div id="header" class="row">
+            <div class="col-auto">
+                <label for="taskList" class="form-label">Task:</label>
+                <p><%= data[0].task_name%></p>
+            </div>
+            <div class="col-auto">
+                <label for="due" class="form-label">Date Due:</label>
+                <p><%=data[0].due_date %></p>
+            </div>
+            <div class="col-auto">
+                <label for="difficulty" class="form-label">Difficulty:</label>
+                <p><%= data[0].difficulty %></p>
+            </div>
+            <div class="col-auto">
+                <label for="time_estimate" class="form-label">Time Estimate:</label>
+                <p ><%=data[0].time_estimate %></p>
+            </div>
+            <div class="col-auto">
+                <label for="location" class="form-label">Location:</label>
+                <p ><%=data[0].task_location %></p>
+            </div>
+            <div class="col-auto">
+                <button id="complete" type="button">Complete Task</button>
+            </div>
+        </div>
+        <div id="complete_task" class="row">
+            <form action="/complete" method="POST">
+                <div class="col-auto">
+                    <label for="date_completed" class="form-label">Date Completed:</label>
+                    <input type="date" id="date_completed" name="date_completed">
+                </div>
+                <div class="col-auto">
+                    <input type="submit" value="Enter Date Completed">
+                </div>
+                <input type="hidden" id="id" name="id" value=<%= data[0].id %>>
+            </form>
+        </div>
+        <div id="title" class="form-group row">
+            <div class="col-sm-9">
+                <h2>People Assigned: </h2>
+            </div>
+            <div class="col-sm-3 right">
+                <button class="add right" type="button"  id="open_task"><a href="/assign/<%= data[0].id %>">Assign More</a></button>
+            </div>
+        </div>
+        <div id="assign" class="row">
+            <table class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Person Name</th>
+                        <th>Date Assigned</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for(const person of data)  { %>
+                        <tr>
+                            <td><%=person.person_name %></td>
+                            <td><%=person.date_assigned %></td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+</body>
+</html>

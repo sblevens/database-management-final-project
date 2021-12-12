@@ -35,13 +35,13 @@ app.listen(PORT, function () {
     console.log("Server listening on port " + PORT);
 });
 
+
 //respond to get requests to the root URL, e.g., /localhost:8080/
 app.get("/", (req, res) => {
     let data = [];
     var query = 'SELECT * '+
                 'FROM TaskHandler ' +
                 'WHERE completed = 0';
-    console.log(query);
     con.query(query, function(err, result, fields) {
         if (err) throw err;
         // data = result;
@@ -57,78 +57,204 @@ app.get("/", (req, res) => {
     });
 });
 
-//respond to get requests to the specified path URL, e.g., /localhost:8080/test/
-app.get("/test", (req, res) => {
-    //using ejs, render the page as HTML    
-    res.render("test.ejs");
+app.get("/add_todo", (req, res) => {
+    //get task details
+    var query = 'SELECT task_name '+
+                'FROM TaskDetails ';
+    con.query(query, function(err, result, fields) {
+        if (err) throw err;
+
+        res.render("add_todo.ejs", {data:result});
+    });
 });
 
 //respond to POST requests to the specified path URL, e.g., /localhost:8080/show/
-app.post("/show", (req, res) => {
-    console.log(req.body);
-    //we can parse this object or we can submit it directly
-    //to our database if it conforms to the schema    
-    //we would want to handle this to add to the database    
+app.post("/add_todo", (req, res) => {
 
     //our POST data
-    //can access because of "body-parser" <-- depreciated but part of express now
-    let first = req.body.first;
-    let last = req.body.last;
-    let check1 = req.body.check1;
-    let rating = req.body.rating;
-    let agree = req.body.agree;
+    let taskList = req.body.taskList;
+    let due = req.body.due;
+    let difficulty = req.body.difficulty;
+    let time_estimate = req.body.time_estimate;
+    let location = req.body.location;
 
-    let response = {
-        first: first,
-        last: last,
-        check1: check1,
-        rating: rating,
-        agree: agree
-    };
+    let response = [
+        taskList,
+        time_estimate,
+        difficulty,
+        due,
+        location
+    ];
 
-    //object passed to form and used to build the form output
-    res.render("response.ejs", response);
+    console.log(response);
+
+    //insert query
+    var query = 'INSERT INTO TaskHandler ' +
+    '(task_name,time_estimate,difficulty,due_date,task_location,completed,date_completed,assigned) '+
+                'VALUES ( ? , ? , ? , ? , ? ,0,NULL,0) ';
+
+    //insert query
+    con.query(query, response, function(err, result, fields) {
+        if (err) throw err;
+        console.log(result);
+
+        //once finished - go back to home and get uncompleted tasks
+        var query = 'SELECT * '+
+                    'FROM TaskHandler ' +
+                    'WHERE completed = 0';
+        con.query(query, function(err, result, fields) {
+            if (err) throw err;
+            // data = result;
+            console.log(result);
+            for (const r of result) {
+                r['due_date'] = r['due_date'].toLocaleDateString();
+                if(r['assigned']==0)
+                    r['assigned'] = false;
+                else
+                    r['assigned']=true;
+            }
+            res.render("home.ejs", {data: result});
+        });
+    });
+    
 });
 
-//respond to get requests to the specified path URL, e.g., /localhost:8080/test/
-app.get("/loopexample", (req, res) => {
-    //using ejs, render the page as HTML   
-    //for this response, I'm building a more complex object and will
-    //use a loop in the rendered .ejs file
+app.get("/details/:id",(req,res)=> {
+    console.log("in details");
+    let id = parseInt(req.params.id);
+    console.log(id);
+    //get info about specific task
+    if(id){
+        var query = 'SELECT * '+
+                'FROM TaskHandler LEFT OUTER JOIN AssignedTo USING (id) ' +
+                ' JOIN TaskDetails USING (task_name) ' +
+                'WHERE id = ?';
+        console.log(query);
+        con.query(query, [id], function(err, result, fields) {
+            if (err) throw err;
+            console.log(result);
+            for (const r of result) {
+                r['due_date'] = r['due_date'].toLocaleDateString();
+                if(r['date_assigned'])
+                    r['date_assigned'] = r['date_assigned'].toLocaleDateString();
+                if(r['assigned']==0)
+                    r['assigned'] = false;
+                else
+                    r['assigned']=true;
+                if(r['completed']==0)
+                    r['completed'] = false;
+                else
+                    r['completed']=true;
+            }
+            res.render("details.ejs", {data: result});
+        });
+    }
+    
+});
 
-    let obj = {
-        rowData: [{
-            content: "First!",
-            random: Math.floor((Math.random() * 1000) + 1)
-        },
-        {
-            content: "Second!",
-            random: Math.floor((Math.random() * 1000) + 1)
-        },
-        {
-            content: "Third!",
-            random: Math.floor((Math.random() * 1000) + 1)
+app.get("/assign/:id",(req,res)=>{
+    let id = req.params.id;
+    //display current people assigned
+    var query1 = 'SELECT * FROM AssignedTo WHERE id = ?'
+    con.query(query1,[id],function(err,result,fields){
+        if(err) throw err;
+        for (const r of result) {
+            r['date_assigned'] = r['date_assigned'].toLocaleDateString();
         }
-        ],
-        somethingElse: "This is just some random text",
-        anotherProperty: 3
-    }
+        var query2 = '(SELECT person_name FROM Person) EXCEPT (SELECT person_name FROM AssignedTo WHERE id = ?)';
+        con.query(query2, [id], function(err,result2,fields){
+            if (err) throw err;
 
-    //this is what we are replicating in the ejs
+            res.render("add_assign.ejs",{data: result, dataList: result2, id: id});
+        })
 
-    /*
+    })
+    
+    //have a form to add more
+});
 
-    console.log(obj.anotherProperty); //except write to HTML instead of console
+app.post("/assign",(req,res)=>{
+    let personList = req.body.personList;
+    let id = req.body.id;
+    console.log(new Date().toISOString().split('T')[0]);
 
-    console.log(obj.somethingElse);  //except write to HTML instead of console
+    let response = [
+        id,
+        personList,
+        new Date().toISOString().split('T')[0]
+    ];
 
-    let count = 0;
+    var query = 'INSERT INTO AssignedTo VALUES (?,?,?)';
+    //insert query
+    con.query(query, response, function(err, result, fields) {
+        if (err) throw err;
+        console.log(result);
 
-    for (const item of obj.rowData) {
-        count++;
-        console.log(item.content); //except write to HTML instead of console
-        console.log(item.random); //except write to HTML instead of console
-    }
-    */
-    res.render("showmore.ejs", obj);
+        //set task to be assigned in TaskHandler
+        var query2 = 'UPDATE TaskHandler SET assigned = 1 WHERE id = ?';
+        con.query(query2,[id],function(err,result,fields){
+            if (err) throw err;
+            //once finished - go back to details
+            if(id){
+                var query = 'SELECT * '+
+                        'FROM TaskHandler LEFT OUTER JOIN AssignedTo USING (id) ' +
+                        ' JOIN TaskDetails USING (task_name) ' +
+                        'WHERE id = ?';
+                console.log(query);
+                con.query(query, [id], function(err, result, fields) {
+                    if (err) throw err;
+                    console.log(result);
+                    for (const r of result) {
+                        r['due_date'] = r['due_date'].toLocaleDateString();
+                        if(r['date_assigned'])
+                            r['date_assigned'] = r['date_assigned'].toLocaleDateString();
+                        if(r['assigned']==0)
+                            r['assigned'] = false;
+                        else
+                            r['assigned']=true;
+                        if(r['completed']==0)
+                            r['completed'] = false;
+                        else
+                            r['completed']=true;
+                    }
+                    res.render("details.ejs", {data: result});
+                });
+            }
+        });
+    });
+});
+
+app.post("/complete",(req,res)=>{
+    let date = req.body.date_completed;
+    let id = req.body.id;
+    console.log(req.body.id);
+    
+    let response = [
+        date,
+        id
+    ];
+
+    var query1 = 'UPDATE TaskHandler SET completed = 1, date_completed = ? WHERE id = ?';
+    con.query(query1,response,function(err,result,fields){
+        if (err) throw err;
+        
+        //once finished - go back to home and get uncompleted tasks
+        var query = 'SELECT * '+
+                    'FROM TaskHandler ' +
+                    'WHERE completed = 0';
+        con.query(query, function(err, result, fields) {
+            if (err) throw err;
+            // data = result;
+            console.log(result);
+            for (const r of result) {
+                r['due_date'] = r['due_date'].toLocaleDateString();
+                if(r['assigned']==0)
+                    r['assigned'] = false;
+                else
+                    r['assigned']=true;
+            }
+            res.render("home.ejs", {data: result});
+        });
+
+    });
 });

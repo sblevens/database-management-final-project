@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Add ToDo</title>
+    <link rel="icon" href="favicon.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <style>
+        #content{
+            margin: 0 auto;
+            width: 90%;
+            padding-top: 15px;
+        }
+        table{
+            /* table-layout: fixed; */
+            width: 100%;
+        }
+
+        .right{
+            float:right;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('nav.ejs') %>
+    <div id="content">
+        <form action="/add_todo" method="POST">
+            <h1>Add a task to completed:</h1>
+            <div class="row">
+                <div class="col-auto">
+                    <label for="taskList" class="form-label">Task:</label>
+                    <input class="form-control" list="datalistOptions" id="taskList" name="taskList" placeholder="Type to search...">
+                    <datalist id="datalistOptions" >
+                        <% for(const task of data) { %>
+                        <option value="<%=task.task_name%>">
+                        <% } %>
+                    </datalist>
+                </div>
+                <div class="col-auto">
+                    <label for="due" class="form-label">Date Due:</label>
+                    <input class="form-control" id="due" name="due" type="date">
+                </div>
+                <div class="col-auto">
+                    <label for="difficulty" class="form-label">Difficulty:</label>
+                    <input class="form-control" type="range" min="1" max="10" value="5" step="1" id="difficulty" name="difficulty">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-auto">
+                    <label for="time_estimate" class="form-label">Time Estimate:</label>
+                    <input class="form-control" type="text" id="time_estimate" name="time_estimate" placeholder="00:00:00">
+                </div>
+                <div class="col-auto">
+                    <label for="location" class="form-label">Location:</label>
+                    <input type="text" class="form-control" id="location" name="location">
+                </div>
+            </div>
+            <input type="submit" value="Submit Task">
+        </form>
+    </div>
+    
+</body>
+</html>
