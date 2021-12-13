@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Reports</title>
+    <title>Search</title>
     <link rel="icon" href="favicon.png">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -37,11 +37,18 @@
 </head>
 
 <body>
-    <h1><%=question%></h1>
-    <% for(d of data) { %>
-    <p><%=d.task_name%></p>
-    <p><%=d.person_name%></p>
-    <p><%=d.avg_time%></p>
-    <% } %>
+    <form action="/getSearch" method="POST">
+        <div class="row">
+            <div class="col-auto">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date"id="start_date" name="start_date" class="form-control">
+            </div>
+            <div class="col-auto">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" id="end_date" name="end_date" class="form-control">
+            </div>
+        </div>
+        <input type="submit" value="Get Tasks Due Within This Range">
+    </form>
 </body>
 </html>

@@ -388,18 +388,18 @@ app.post("/assignedTasks",(req,res)=>{
     console.log(most);
     if(most==1){
         console.log("in most");
-        var query = 'SELECT task_name, COUNT(*) FROM TaskHandler ' +
-                'JOIN AssignedTo USING (id) ' +
+        var query = 'SELECT task_name, COUNT(person_name) FROM TaskHandler ' +
+                'LEFT OUTER JOIN AssignedTo USING (id) ' +
                 'GROUP BY task_name ' +
-                'HAVING COUNT(*) >= ALL(SELECT COUNT(*) FROM TaskHandler ' +
-                'JOIN AssignedTo USING (id) GROUP BY task_name) ' 
+                'HAVING COUNT(person_name) >= ALL(SELECT COUNT(person) FROM TaskHandler ' +
+                'LEFT OUTER JOIN AssignedTo USING (id) GROUP BY task_name) ' 
 
     } else {
-        var query = 'SELECT task_name, COUNT(*) FROM TaskHandler ' +
-                'JOIN AssignedTo USING (id) ' +
+        var query = 'SELECT task_name, COUNT(person_name) FROM TaskHandler ' +
+                'LEFT OUTER JOIN AssignedTo USING (id) ' +
                 'GROUP BY task_name ' +
-                'HAVING COUNT(*) <= ALL(SELECT COUNT(*) FROM TaskHandler ' +
-                'JOIN AssignedTo USING (id) GROUP BY task_name) ' 
+                'HAVING COUNT(person_name) <= ALL(SELECT COUNT(person_name) FROM TaskHandler ' +
+                'LEFT OUTER JOIN AssignedTo USING (id) GROUP BY task_name) ' 
 
     }
 
@@ -533,10 +533,41 @@ app.post("/avgTimeToComplete",(req,res)=>{
         console.log(result);
         res.render("answer.ejs",{question:question,data:result});
     });
-
-
 });
-/* for most task assigned to person
-select task_name, person_name, date_assigned, count(*) From TaskHandler JOIN AssignedTo USING (id) where person_name = 'Tori' group by task_name;
-*/
 
+app.post("/moreThanAvgRating",(req,res)=>{
+    let question = req.body.question;
+    var query = 'SELECT task_name, due_date, COUNT(*) AS total FROM TaskHandler '+
+    'JOIN Rating USING (id) GROUP BY id HAVING COUNT(*) >= (SELECT AVG(tot_rat) FROM ' +
+    '(SELECT COUNT(*) as tot_rat FROM TaskHandler JOIN Rating USING (id) GROUP BY id) as co) ';
+
+    con.query(query,function(err,result,fields){
+        if(err) throw err;
+        res.render("answer.ejs",{question:question, data:result});
+    });
+})
+
+
+app.get("/search",(req,res)=>{
+    res.render("search.ejs");
+});
+
+app.post("/getSearch",(req,res)=>{
+    let start = req.body.start_date;
+    let end = req.body.end_date;
+
+    console.log(start);
+
+    let response = [
+        start,
+        end
+    ];
+
+    var query = 'SELECT * FROM TaskHandler WHERE due_date > ? AND  due_date < ?';
+    con.query(query,response,function(err,result,fields){
+        if(err) throw err;
+        console.log(query);
+        console.log(result);
+        res.render("home.ejs",{data:result, title: "Tasks"});
+    });
+});
