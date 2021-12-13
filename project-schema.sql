@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS Person;
 CREATE TABLE Person(
     person_name varchar(100),
     created_date DATE NOT NULL,
-    isActive BIT NOT NULL, /* assuming not active persons are not assigned to new tasks */
+    isActive BOOL NOT NULL, /* assuming not active persons are not assigned to new tasks */
     PRIMARY KEY (person_name)
 ); 
 

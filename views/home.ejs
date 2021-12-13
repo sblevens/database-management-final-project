@@ -28,7 +28,7 @@
     <div id="content">
         <div class="form-group row">
             <div class="col-sm-9">
-                <h1>Uncompleted Tasks</h1>
+                <h1><%=title%></h1>
             </div>
             <div class="col-sm-3 right">
                 <button class="add right" type="button"  id="open_task"><a href="/add_todo">Add Task To-Do</a></button>
@@ -43,6 +43,7 @@
                     <th>Task Location</th>
                     <th>Difficulty</th>
                     <th>Assigned</th>
+                    <th>Completed</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,6 +63,9 @@
                     </td>
                     <td>
                         <input type="checkbox" disabled <%= task.assigned ? "checked" : "" %>>
+                    </td>
+                    <td>
+                        <input type="checkbox" disabled <%= task.completed ? "checked" : "" %>>
                     </td>
                 </tr>
                 <% } %>

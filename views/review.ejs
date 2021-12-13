@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Assign</title>
+    <link rel="icon" href="favicon.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <style>
+        #content{
+            margin: 0 auto;
+            width: 90%;
+            padding-top: 15px;
+        }
+        table{
+            /* table-layout: fixed; */
+            width: 100%;
+        }
+
+        .right{
+            float:right;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('nav.ejs') %>
+    <div id="content">
+        <form action="/review" method="POST">
+            <div class="row">
+                <div class="col-auto">
+                    <label for="personList">Reviewer:</label>
+                    <input class="form-control" list="datalistOptions" id="personList" name="personList" placeholder="Type to search...">
+                    <datalist id="datalistOptions" >
+                        <% for(const p of people) { %>
+                        <option value="<%=p.person_name%>">
+                        <% } %>
+                    </datalist>
+                </div>
+                <div class="col-auto">
+                    <label for="stars">Rating:</label>
+                    <select id="stars" name="stars">
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        <option>4</option>
+                        <option>5</option>
+                    </select>
+                </div>
+            </div>
+            <input type="submit" value="Add Review">
+            <input type="hidden" id="id" name="id" value=<%=id %>>
+        </form>
+    </div>
+</body>
+</html>

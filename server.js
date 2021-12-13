@@ -53,7 +53,25 @@ app.get("/", (req, res) => {
             else
                 r['assigned']=true;
         }
-        res.render("home.ejs", {data: result});
+        res.render("home.ejs", {data: result, title: "Uncompleted Tasks"});
+    });
+});
+
+app.get("/all",(req,res)=>{
+    var query = 'SELECT * '+
+                'FROM TaskHandler ';
+    con.query(query, function(err, result, fields) {
+        if (err) throw err;
+        // data = result;
+        console.log(result);
+        for (const r of result) {
+            r['due_date'] = r['due_date'].toLocaleDateString();
+            if(r['assigned']==0)
+                r['assigned'] = false;
+            else
+                r['assigned']=true;
+        }
+        res.render("home.ejs", {data: result, title: "All Tasks"});
     });
 });
 
@@ -113,7 +131,7 @@ app.post("/add_todo", (req, res) => {
                 else
                     r['assigned']=true;
             }
-            res.render("home.ejs", {data: result});
+            res.render("home.ejs", {data: result, title: "Uncompleted Tasks"});
         });
     });
     
@@ -132,7 +150,7 @@ app.get("/details/:id",(req,res)=> {
         console.log(query);
         con.query(query, [id], function(err, result, fields) {
             if (err) throw err;
-            console.log(result);
+            // console.log(result);
             for (const r of result) {
                 r['due_date'] = r['due_date'].toLocaleDateString();
                 if(r['date_assigned'])
@@ -141,12 +159,24 @@ app.get("/details/:id",(req,res)=> {
                     r['assigned'] = false;
                 else
                     r['assigned']=true;
-                if(r['completed']==0)
+                if(r['completed']==0){
                     r['completed'] = false;
-                else
+                }else{
                     r['completed']=true;
+                    r['date_completed'] = r['date_completed'].toLocaleDateString();
+                }
             }
-            res.render("details.ejs", {data: result});
+            var query2 = 'SELECT * FROM Rating WHERE id = ?';
+            con.query(query2,[id],function(err,result2,fields){
+                if(err) throw err;
+                console.log("result 2");
+                console.log(result2);
+                for (const r of result2) {
+                    r['rated_date'] = r['rated_date'].toLocaleDateString();
+                }
+
+                res.render("details.ejs", {data: result,ratings:result2});
+            });
         });
     }
     
@@ -161,7 +191,7 @@ app.get("/assign/:id",(req,res)=>{
         for (const r of result) {
             r['date_assigned'] = r['date_assigned'].toLocaleDateString();
         }
-        var query2 = '(SELECT person_name FROM Person) EXCEPT (SELECT person_name FROM AssignedTo WHERE id = ?)';
+        var query2 = '(SELECT person_name FROM Person WHERE isActive=1 ) EXCEPT (SELECT person_name FROM AssignedTo WHERE id = ?)';
         con.query(query2, [id], function(err,result2,fields){
             if (err) throw err;
 
@@ -205,9 +235,12 @@ app.post("/assign",(req,res)=>{
                     if (err) throw err;
                     console.log(result);
                     for (const r of result) {
+                        console.log("in results");
                         r['due_date'] = r['due_date'].toLocaleDateString();
+                        console.log("due date");
                         if(r['date_assigned'])
                             r['date_assigned'] = r['date_assigned'].toLocaleDateString();
+                        console.log("date assigned")
                         if(r['assigned']==0)
                             r['assigned'] = false;
                         else
@@ -217,7 +250,16 @@ app.post("/assign",(req,res)=>{
                         else
                             r['completed']=true;
                     }
-                    res.render("details.ejs", {data: result});
+                    var query2 = 'SELECT * FROM Rating WHERE id = ?';
+                    con.query(query2,[id],function(err,result2,fields){
+                        if(err) throw err;
+                        console.log(result2.length);
+                        for (const r of result2) {
+                            console.log("rated date");
+                            r['rated_date'] = r['rated_date'].toLocaleDateString();
+                        }
+                        res.render("details.ejs", {data: result,ratings:result2});
+                    });
                 });
             }
         });
@@ -253,8 +295,248 @@ app.post("/complete",(req,res)=>{
                 else
                     r['assigned']=true;
             }
-            res.render("home.ejs", {data: result});
+            res.render("home.ejs", {data: result, title: "Uncompleted Tasks"});
         });
 
     });
 });
+
+
+app.get("/review/:id",(req,res)=>{
+    let id = req.params.id;
+    
+    //get all people
+    var query = 'SELECT * from Person WHERE isActive = 1';
+    con.query(query, function(err,result,fields){
+        if(err) throw err;
+        res.render("review.ejs",{people:result, id:id});
+    });
+});
+
+app.post("/review",(req,res)=>{
+    let id = req.body.id;
+    let personList = req.body.personList;
+    let stars = req.body.stars;
+
+    let response = [
+        id,
+        personList,
+        stars,
+        new Date().toISOString().split('T')[0]
+    ]
+
+    var query = 'INSERT INTO Rating VALUES (?,?,?,?)';
+    con.query(query,response,function(err,result,fields){
+        if (err) throw err;
+
+        //go back to details page
+        //once finished - go back to details
+        if(id){
+            var query = 'SELECT * '+
+                    'FROM TaskHandler LEFT OUTER JOIN AssignedTo USING (id) ' +
+                    ' JOIN TaskDetails USING (task_name) ' +
+                    'WHERE id = ?';
+            console.log(query);
+            con.query(query, [id], function(err, result, fields) {
+                if (err) throw err;
+                console.log(result);
+                for (const r of result) {
+                    r['due_date'] = r['due_date'].toLocaleDateString();
+                    if(r['date_assigned'])
+                        r['date_assigned'] = r['date_assigned'].toLocaleDateString();
+                    if(r['assigned']==0)
+                        r['assigned'] = false;
+                    else
+                        r['assigned']=true;
+                    if(r['completed']==0)
+                        r['completed'] = false;
+                    else
+                        r['completed']=true;
+                }
+                
+                var query2 = 'SELECT * FROM Rating WHERE id = ?';
+                con.query(query,[id],function(err,result2,fields){
+                    if(err) throw err;
+                    for (const r of result2) {
+                        r['rated_date'] = r['rated_date'].toLocaleDateString();
+                    }
+                    res.render("details.ejs", {data: result,ratings:result2});
+                });
+            });
+        }
+    });
+});
+
+
+app.get("/reports",(req,res)=>{
+    //get list of tasks
+    var query = 'SELECT task_name FROM TaskDetails';
+    //get list of people
+    var query2 = 'SELECT person_name FROM Person WHERE isActive = 1';
+    con.query(query,function(err,result,fields){
+        if(err) throw err;
+        con.query(query2,function(err,result2,fields){
+            if(err) throw err;
+            res.render("reports.ejs",{tasks:result,people:result2});
+        });
+    });
+});
+
+app.post("/assignedTasks",(req,res)=>{
+    let question = req.body.question;
+    let most = req.body.most;
+    console.log(most);
+    if(most==1){
+        console.log("in most");
+        var query = 'SELECT task_name, COUNT(*) FROM TaskHandler ' +
+                'JOIN AssignedTo USING (id) ' +
+                'GROUP BY task_name ' +
+                'HAVING COUNT(*) >= ALL(SELECT COUNT(*) FROM TaskHandler ' +
+                'JOIN AssignedTo USING (id) GROUP BY task_name) ' 
+
+    } else {
+        var query = 'SELECT task_name, COUNT(*) FROM TaskHandler ' +
+                'JOIN AssignedTo USING (id) ' +
+                'GROUP BY task_name ' +
+                'HAVING COUNT(*) <= ALL(SELECT COUNT(*) FROM TaskHandler ' +
+                'JOIN AssignedTo USING (id) GROUP BY task_name) ' 
+
+    }
+
+    con.query(query,function(err,result,fields){
+        if(err) throw err;
+        res.render("answer.ejs",{question: question, data: result});
+    });
+
+});
+
+app.post("/assignedPerson",(req,res)=>{
+    let question = req.body.question;
+    let most = req.body.most;
+    if(most==1){
+        var query = 'SELECT person_name, COUNT(*) From AssignedTo ' +
+                    'GROUP BY person_name HAVING COUNT(*) >= ALL(SELECT COUNT(*) ' +
+                    'FROM AssignedTo GROUP BY person_name) ';
+    } else {
+        var query = 'SELECT person_name, COUNT(*) From AssignedTo ' +
+        'GROUP BY person_name HAVING COUNT(*) <= ALL(SELECT COUNT(*) ' +
+        'FROM AssignedTo GROUP BY person_name) ';
+    }
+
+    con.query(query, function(err,result,fields){
+        if(err) throw err;
+        res.render("answer.ejs",{question:question, data:result});
+    });
+});
+
+app.post("/overdueTask",(req,res)=>{
+    let question = req.body.question;
+    let most = req.body.most;
+    if(most==1){
+        var query = 'SELECT task_name, due_date, count(*) FROM TaskHandler WHERE ' +
+        '(date_completed IS NULL AND due_date < CURDATE()) OR ' +
+        '(date_completed IS NOT NULL AND date_completed > due_date) GROUP BY task_name HAVING COUNT(*) >= ALL( ' +
+        'SELECT COUNT(*) FROM TaskHandler where (date_completed IS NULL and due_date < CURDATE()) ' +
+        'OR (date_completed IS NOT NULL AND date_completed > due_date) Group By task_name)';
+    } else {
+        var query = 'SELECT task_name, due_date, count(*) FROM TaskHandler WHERE ' +
+        '(date_completed IS NULL AND due_date < CURDATE()) OR ' +
+        '(date_completed IS NOT NULL AND date_completed > due_date) GROUP BY task_name HAVING COUNT(*) <= ALL( ' +
+        'SELECT COUNT(*) FROM TaskHandler where (date_completed IS NULL and due_date < CURDATE()) ' +
+        'OR (date_completed IS NOT NULL AND date_completed > due_date) Group By task_name)';
+    }
+    console.log(query);
+    con.query(query, function(err,result,fields){
+        if(err) throw err;
+        console.log(result);
+        res.render("answer.ejs",{question:question, data:result});
+    });
+});
+
+app.post("/overduePerson",(req,res)=>{
+    let question = req.body.question;
+    let most = req.body.most;
+    if(most==1){
+        var query = 'SELECT person_name, count(*) FROM TaskHandler Join AssignedTo USING (id) WHERE ' +
+        '(date_completed IS NULL AND due_date < CURDATE()) OR ' +
+        '(date_completed IS NOT NULL AND date_completed > due_date) GROUP BY person_name HAVING COUNT(*) >= ALL( ' +
+        'SELECT COUNT(*) FROM TaskHandler JOIN AssignedTo USING (id) where (date_completed IS NULL and due_date < CURDATE()) ' +
+        'OR (date_completed IS NOT NULL AND date_completed > due_date) Group By person_name)';
+    } else {
+        var query = 'SELECT person_name, count(*) FROM TaskHandler Join AssignedTo USING (id) WHERE ' +
+        '(date_completed IS NULL AND due_date < CURDATE()) OR ' +
+        '(date_completed IS NOT NULL AND date_completed > due_date) GROUP BY person_name HAVING COUNT(*) <= ALL( ' +
+        'SELECT COUNT(*) FROM TaskHandler JOIN AssignedTo USING (id) where (date_completed IS NULL and due_date < CURDATE()) ' +
+        'OR (date_completed IS NOT NULL AND date_completed > due_date) Group By person_name)';
+    }
+
+    con.query(query,function(err,result,fields){
+        if(err) throw err;
+        res.render("answer.ejs",{question:question, data:result});
+    });
+});
+
+
+app.post("/mostAssignedToTask",(req,res)=>{
+    let question = req.body.question;
+    let task = req.body.taskList;
+
+    var query = 'SELECT task_name, person_name, count(*) FROM TaskHandler JOIN AssignedTo USING (id) '+
+    'WHERE task_name = ? GROUP BY person_name HAVING COUNT(*) >= ALL(SELECT COUNT(*) FROM '+
+    'TaskHandler JOIN AssignedTo USING (id) WHERE task_name = ? GROUP BY person_name) ';
+
+    con.query(query,[task,task],function(err,result,fields){
+        if(err) throw err;
+        res.render("answer.ejs",{question:question, data:result});
+    });
+
+});
+
+app.post("/mostTaskAssignedTo",(req,res)=>{
+    let question = req.body.question;
+    let person = req.body.personList;
+
+    var query = 'SELECT task_name, person_name, date_assigned, count(*) FROM ' +
+    'TaskHandler JOIN AssignedTo USING (id) WHERE person_name = ? GROUP BY ' +
+    'task_name HAVING COUNT(*) >= ALL(SELECT COUNT(*) FROM TaskHandler JOIN AssignedTo '+ 
+    'USING (id) WHERE person_name = ? GROUP BY task_name)';
+
+    con.query(query,[person,person],function(err,result,fields){
+        if(err) throw err;
+        res.render("answer.ejs",{question:question, data:result});
+    });
+});
+
+app.post("/avgTimeToComplete",(req,res)=>{
+    let question = req.body.question;
+    let task = req.body.avgTaskList;
+    let person = req.body.AvgPersonList;
+    let response = [];
+    response.push(1);
+
+    var query = 'SELECT AVG(DATEDIFF(date_completed, date_assigned)) as avg_time '+
+    'FROM TaskHandler JOIN AssignedTo USING (id) WHERE '+
+    'completed = ? ';
+
+    if(task.localeCompare("All")!=0){
+        query = query + ' AND task_name = ? ';
+        response.push(task);
+    }
+    if(person.localeCompare("All")!=0){
+        query = query + ' AND person_name = ? ';
+        response.push(person);
+    }
+    console.log(query);
+    console.log(response);
+    con.query(query,response,function(err,result,fields){
+        if(err) throw err;
+        console.log(result);
+        res.render("answer.ejs",{question:question,data:result});
+    });
+
+
+});
+/* for most task assigned to person
+select task_name, person_name, date_assigned, count(*) From TaskHandler JOIN AssignedTo USING (id) where person_name = 'Tori' group by task_name;
+*/
+

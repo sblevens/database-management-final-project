@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Reports</title>
+    <link rel="icon" href="favicon.png">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <style>
+        #content{
+            margin: 0 auto;
+            width: 90%;
+            padding-top: 15px;
+        }
+        table{
+            /* table-layout: fixed; */
+            width: 100%;
+        }
+
+        .right{
+            float:right;
+        }
+
+        input[type="submit"]{
+            padding: 6px;
+            width: 350px;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+           
+        });
+    </script>
+</head>
+
+<body>
+    <%- include('nav.ejs') %>
+    <div id="content">
+        <h1>Get Most / Least:</h1>
+        <div class="row">
+            <div class="col-auto">
+                <form action='/assignedTasks' method="POST">
+                    <input type="submit" id="m-assigned-task" value="Get Most Assigned Task(s)">
+                    <input type="hidden" id="question" name="question" value="Most Assigned Task(s)">
+                    <input type="hidden" id="most" name="most" value=1>
+                </form>
+                <form action='/assignedTasks' method="POST">
+                    <input type="submit" id="l-assigned-task" value="Get Least Assigned Task(s)">
+                    <input type="hidden" id="question" name="question" value="Least Assigned Task(s)">
+                    <input type="hidden" id="most" name="most" value=0>
+                </form>
+            </div>
+            <div class="col-auto">
+                <form action="/assignedPerson" method="POST">
+                    <input type="submit" id="m-assigned-person" value="Get Most Assigned Person/People">
+                    <input type="hidden" id="question" name="question" value="Get Most Assigned Person/People">
+                    <input type="hidden" id="most" name="most" value=1>
+                </form>
+                <form action="/assignedPerson" method="POST">
+                    <input type="submit" id="l-assigned-person" value="Get Least Assigned Person/People">
+                    <input type="hidden" id="question" name="question" value="Get Least Assigned Person/People">
+                    <input type="hidden" id="most" name="most" value=0>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-auto">
+                <form action="/overdueTask" method="POST">
+                    <input type="submit" id="m-overdue-task" value="Get Most Often Overdue Task">
+                    <input type="hidden" id="question" name="question" value="Get Most Often Overdue Task">
+                    <input type="hidden" id="most" name="most" value=1>
+                </form>
+                <form action="/overdueTask" method="POST">
+                    <input type="submit" id="l-overdue-task" value="Get Least Often Overdue Task">
+                    <input type="hidden" id="question" name="question" value="Get Least Often Overdue Task">
+                    <input type="hidden" id="most" name="most" value=0>
+                </form>
+            </div>
+            <div class="col-auto">
+                <form action="/overduePerson" method="POST">
+                    <input type="submit" id="m-overdue-person" value="Get Most Often Overdue Person">
+                    <input type="hidden" id="question" name="question" value="Get Most Often Overdue Person">
+                    <input type="hidden" id="most" name="most" value=1>
+                </form>
+                <form action="/overduePerson" method="POST">
+                    <input type="submit" id="l-overdue-person" value="Get Least Often Overdue Person">
+                    <input type="hidden" id="question" name="question" value="Get Least Often Overdue Person">
+                    <input type="hidden" id="most" name="most" value=0>
+                </form>
+            </div>
+        </div>
+        <h1>who was most assigned to this task?</h1>
+        <form action="/mostAssignedToTask" method="POST">
+            <div class="row">
+                <div class="col-auto">
+                    <label for="taskList" class="form-label">Task:</label>
+                    <input class="form-control" list="datalistTasks" id="taskList" name="taskList" placeholder="Type to search...">
+                    <datalist id="datalistTasks" >
+                        <% for(const t of tasks) { %>
+                        <option value="<%=t.task_name%>">
+                        <% } %>
+                    </datalist>
+                </div>
+            </div>
+            <input type="submit" value="Who was most assigned to this task?">
+            <input type="hidden" id="question" name="question" value="Who was most assigned to this task?">
+        </form>
+        <h1>What task was most assigned to this person:</h1>
+        <form action="/mostTaskAssignedTo" method="POST">
+            <div class="row">
+                <div class="col-auto">
+                    <label for="personList" class="form-label">Person:</label>
+                    <input class="form-control" list="datalistPeople" id="personList" name="personList" placeholder="Type to search...">
+                    <datalist id="datalistPeople" >
+                        <% for(const p of people) { %>
+                        <option value="<%=p.person_name%>">
+                        <% } %>
+                    </datalist>
+                </div>
+            </div>
+            <input type="submit" value="What tasks was most assigned to this person">
+            <input type="hidden" id="question" name="question" value="What tasks was most assigned to this person?">
+        </form>
+        <h1>Avg Time to Complete:</h1>
+        <form action="/avgTimeToComplete" method="POST">
+            <div class="row">
+                <div class="col-auto">
+                    <label for="avgTaskList">Task:</label>
+                    <input class="form-control" list="datalistAvgTasks" id="avgTaskList" name="avgTaskList" placeholder="Type to search...">
+                            <datalist id="datalistAvgTasks" >
+                                <option value="All">
+                                <% for(const t of tasks) { %>
+                                <option value="<%=t.task_name%>">
+                                <% } %>
+                            </datalist>
+                </div>
+                <div class="col-auto">
+                    <label for="avgPersonList">Person:</label>
+                    <input class="form-control" list="datalistAvgPeople" id="AvgPersonList" name="AvgPersonList" placeholder="Type to search...">
+                            <datalist id="datalistAvgPeople" >
+                                <option value="All">
+                                <% for(const p of people) { %>
+                                <option value="<%=p.person_name%>">
+                                <% } %>
+                            </datalist>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-auto">
+                    <input type="submit" id="a-time-complete" value="Avg Time to Complete">
+                </div>
+            </div>
+            <input type="hidden" id="question" name="question" value="Average time to complete given task for given person?">
+        </form>
+    </div>
+</body>
+</html>
