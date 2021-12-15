@@ -30,7 +30,7 @@
             <div class="row">
                 <div class="col-auto">
                     <label for="personList">Reviewer:</label>
-                    <input class="form-control" list="datalistOptions" id="personList" name="personList" placeholder="Type to search...">
+                    <input class="form-control" list="datalistOptions" id="personList" name="personList" autocomplete="off" placeholder="Type to search...">
                     <datalist id="datalistOptions" >
                         <% for(const p of people) { %>
                         <option value="<%=p.person_name%>">

@@ -391,7 +391,7 @@ app.post("/assignedTasks",(req,res)=>{
         var query = 'SELECT task_name, COUNT(person_name) FROM TaskHandler ' +
                 'LEFT OUTER JOIN AssignedTo USING (id) ' +
                 'GROUP BY task_name ' +
-                'HAVING COUNT(person_name) >= ALL(SELECT COUNT(person) FROM TaskHandler ' +
+                'HAVING COUNT(person_name) >= ALL(SELECT COUNT(person_name) FROM TaskHandler ' +
                 'LEFT OUTER JOIN AssignedTo USING (id) GROUP BY task_name) ' 
 
     } else {
