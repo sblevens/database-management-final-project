@@ -355,7 +355,7 @@ app.post("/review",(req,res)=>{
                 }
                 
                 var query2 = 'SELECT * FROM Rating WHERE id = ?';
-                con.query(query,[id],function(err,result2,fields){
+                con.query(query2,[id],function(err,result2,fields){
                     if(err) throw err;
                     for (const r of result2) {
                         r['rated_date'] = r['rated_date'].toLocaleDateString();
